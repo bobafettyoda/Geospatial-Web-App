@@ -64,3 +64,20 @@ def summary():
         "habitat_by_agency": rows("SELECT source_agency, count(*)::int AS count FROM critical_habitat GROUP BY 1 ORDER BY 1"),
         "last_updated": rows("SELECT max(updated_at) AS last_updated FROM critical_habitat"),
     }
+
+
+@app.get("/species/{spcode}/bbox")
+def species_bbox(spcode: str):
+    result = rows(
+        """
+        SELECT
+          ST_XMin(ST_Extent(geom)) AS minx,
+          ST_YMin(ST_Extent(geom)) AS miny,
+          ST_XMax(ST_Extent(geom)) AS maxx,
+          ST_YMax(ST_Extent(geom)) AS maxy
+        FROM critical_habitat
+        WHERE spcode = %s
+        """,
+        (spcode,),
+    )
+    return result[0] if result else {}
