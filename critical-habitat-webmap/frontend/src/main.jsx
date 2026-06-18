@@ -4,8 +4,14 @@ import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './style.css';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-const MARTIN_URL = import.meta.env.VITE_MARTIN_URL || 'http://localhost:3000';
+const codespaceUrl = (port) => {
+  const { protocol, hostname } = window.location;
+  if (hostname === 'localhost' || hostname === '127.0.0.1') return `http://localhost:${port}`;
+  return `${protocol}//${hostname.replace('-5173.', `-${port}.`)}`;
+};
+
+const API_URL = import.meta.env.VITE_API_URL || codespaceUrl(8000);
+const MARTIN_URL = import.meta.env.VITE_MARTIN_URL || codespaceUrl(3000);
 
 function App() {
   const [species, setSpecies] = useState([]);
