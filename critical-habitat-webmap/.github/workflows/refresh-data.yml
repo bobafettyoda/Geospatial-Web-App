@@ -1,0 +1,31 @@
+name: Refresh critical habitat data
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 8 1 * *'
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install geospatial tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gdal-bin postgresql-client unzip curl
+      - name: Download current source data
+        run: |
+          mkdir -p data/raw
+          echo "Add official USFWS/NOAA download URLs here after confirming current endpoints."
+          echo "For production, keep source URLs in repository variables or a config file."
+      - name: Import to PostGIS
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          echo "Run scripts/import_habitat.sh for each downloaded dataset."
+      - name: Build frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
