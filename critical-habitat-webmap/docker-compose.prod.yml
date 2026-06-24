@@ -1,0 +1,70 @@
+version: "3.8"
+
+services:
+  habitat-db:
+    image: postgis/postgis:16-3.4
+    container_name: habitat-db
+    environment:
+      POSTGRES_DB: habitat
+      POSTGRES_USER: habitat
+      POSTGRES_PASSWORD: habitat
+    volumes:
+      - habitat_pgdata:/var/lib/postgresql/data
+      - ./backend/sql:/docker-entrypoint-initdb.d:ro
+    restart: unless-stopped
+    networks:
+      geonode_project_default:
+        aliases:
+          - habitat-db
+
+  habitat-api:
+    build: ./backend
+    container_name: habitat-api
+    depends_on:
+      - habitat-db
+    environment:
+      DATABASE_URL: postgresql://habitat:habitat@habitat-db:5432/habitat
+    restart: unless-stopped
+    networks:
+      geonode_project_default:
+        aliases:
+          - habitat-api
+
+  habitat-martin:
+    image: ghcr.io/maplibre/martin:latest
+    container_name: habitat-martin
+    depends_on:
+      - habitat-db
+    command:
+      - "--listen-addresses"
+      - "0.0.0.0:3000"
+      - "postgresql://habitat:habitat@habitat-db:5432/habitat"
+    restart: unless-stopped
+    networks:
+      geonode_project_default:
+        aliases:
+          - habitat-martin
+
+  habitat-web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+      args:
+        VITE_API_URL: /critical-habitat-api
+        VITE_MARTIN_URL: /critical-habitat-tiles
+    container_name: habitat-web
+    depends_on:
+      - habitat-api
+      - habitat-martin
+    restart: unless-stopped
+    networks:
+      geonode_project_default:
+        aliases:
+          - habitat-web
+
+volumes:
+  habitat_pgdata:
+
+networks:
+  geonode_project_default:
+    external: true

@@ -10,8 +10,14 @@ const codespaceUrl = (port) => {
   return `${protocol}//${hostname.replace('-5173.', `-${port}.`)}`;
 };
 
-const API_URL = import.meta.env.VITE_API_URL || codespaceUrl(8000);
-const MARTIN_URL = import.meta.env.VITE_MARTIN_URL || codespaceUrl(3000);
+const absoluteUrl = (url) => {
+  if (!url) return url;
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  return `${window.location.origin}${url.startsWith('/') ? url : `/${url}`}`;
+};
+
+const API_URL = absoluteUrl(import.meta.env.VITE_API_URL) || codespaceUrl(8000);
+const MARTIN_URL = absoluteUrl(import.meta.env.VITE_MARTIN_URL) || codespaceUrl(3000);
 
 function App() {
   const [species, setSpecies] = useState([]);
